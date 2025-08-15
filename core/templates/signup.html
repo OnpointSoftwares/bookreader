@@ -1,0 +1,312 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container-fluid">
+        <div class="row g-0">
+            <!-- Image Column -->
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="auth-image" style="background-image: url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80');">
+                    <div class="auth-overlay">
+                        <h2>Join Our Community</h2>
+                        <p>Start your reading journey with thousands of books at your fingertips</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Column -->
+            <div class="col-lg-6">
+                <div class="auth-form-container">
+                    <div class="auth-form-wrapper">
+                        <h1>Create Account</h1>
+                        <p class="auth-subtitle">Sign up to access your personal library</p>
+                        
+                        <form method="post" class="auth-form">
+                            {% csrf_token %}
+                            {% for field in form %}
+                                <div class="form-group">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                            
+                            <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+                            
+                            <div class="divider">
+                                <span>or sign up with</span>
+                            </div>
+                            
+                            <div class="social-login">
+                                <button type="button" class="social-btn google">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill="#4285F4" d="M23.745 12.27c0-.79-.07-1.54-.19-2.27h-11.3v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/>
+                                        <path fill="#34A853" d="M12.255 24c3.24 0 5.96-1.08 7.95-2.91l-3.86-3.86c-1.08.72-2.45 1.16-4.09 1.16-3.14 0-5.81-2.12-6.76-4.97H1.485v3.98C3.475 21.3 7.585 24 12.255 24z"/>
+                                        <path fill="#FBBC05" d="M5.485 14.42c-.25-.72-.38-1.49-.38-2.28s.13-1.56.38-2.28V5.88H1.485C.675 7.68.255 9.74.255 12s.42 4.32 1.23 6.12l3.74-2.9z"/>
+                                        <path fill="#EA4335" d="M12.255 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C18.205 1.19 15.495 0 12.255 0c-4.67 0-8.78 2.7-10.77 6.62l3.75 2.9c.95-2.85 3.62-4.97 6.76-4.97z"/>
+                                    </svg>
+                                    Google
+                                </button>
+                                <button type="button" class="social-btn facebook">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                    </svg>
+                                    Facebook
+                                </button>
+                            </div>
+                            
+                            <p class="auth-footer">
+                                Already have an account? <a href="{% url 'login' %}">Sign in</a>
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Auth Section */
+.auth-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.auth-image {
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 2rem;
+}
+
+.auth-overlay {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 2rem;
+    border-radius: 10px;
+    max-width: 80%;
+}
+
+.auth-overlay h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.auth-overlay p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.auth-form-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+.auth-form-wrapper {
+    max-width: 450px;
+    width: 100%;
+    padding: 2.5rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.auth-form h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #1a365d;
+    font-weight: 700;
+}
+
+.auth-subtitle {
+    color: #718096;
+    margin-bottom: 2rem;
+}
+
+.auth-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.auth-form .form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.auth-form .form-control:focus {
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+    outline: none;
+}
+
+/* Social Buttons */
+.social-login {
+    display: flex;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.social-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: white;
+    color: #4a5568;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.social-btn:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+}
+
+.social-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Divider */
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.5rem 0;
+    color: #a0aec0;
+    font-size: 0.875rem;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.divider:not(:empty)::before {
+    margin-right: 1rem;
+}
+
+.divider:not(:empty)::after {
+    margin-left: 1rem;
+}
+
+/* Auth Footer */
+.auth-footer {
+    text-align: center;
+    color: #718096;
+    margin-top: 1.5rem;
+}
+
+.auth-footer a {
+    color: #3182ce;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .auth-image {
+        display: none;
+    }
+    
+    .auth-form-wrapper {
+        max-width: 100%;
+        padding: 2rem 1.5rem;
+    }
+}
+
+/* Form Validation */
+.is-invalid {
+    border-color: #e53e3e !important;
+}
+
+.invalid-feedback {
+    color: #e53e3e;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Button Styles */
+.btn-primary {
+    background-color: #3182ce;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    background-color: #2c5282;
+}
+</style>
+
+<script>
+// Add animation to form elements
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.auth-form');
+    if (form) {
+        form.style.opacity = '0';
+        form.style.transform = 'translateY(20px)';
+        form.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        
+        setTimeout(() => {
+            form.style.opacity = '1';
+            form.style.transform = 'translateY(0)';
+        }, 100);
+    }
+    
+    // Toggle password visibility
+    const togglePassword = document.querySelector('.toggle-password');
+    if (togglePassword) {
+        togglePassword.addEventListener('click', function() {
+            const password = document.querySelector('#id_password');
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            this.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+        });
+    }
+});
+</script>
+{% endblock %}

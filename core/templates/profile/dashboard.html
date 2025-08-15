@@ -1,0 +1,268 @@
+{% extends 'profile/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard • {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body py-4">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar avatar-xl me-3">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name }}" class="rounded-circle">
+                            {% else %}
+                                <span class="avatar-initials bg-primary text-white">
+                                    {{ user.get_initials }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h2 class="mb-1">Welcome back, {{ user.first_name|default:user.username }}!</h2>
+                            <p class="text-muted mb-0">Here's what's happening with your reading journey.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Books</h6>
+                            <h3 class="mb-0">{{ reading_stats.total_books }}</h3>
+                        </div>
+                        <div class="avatar bg-primary bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-book text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Completed</h6>
+                            <h3 class="mb-0">{{ reading_stats.completed_books }}</h3>
+                        </div>
+                        <div class="avatar bg-success bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-check2-circle text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">In Progress</h6>
+                            <h3 class="mb-0">{{ reading_stats.in_progress }}</h3>
+                        </div>
+                        <div class="avatar bg-warning bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-bookmark-check text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Pages</h6>
+                            <h3 class="mb-0">{{ reading_stats.total_pages|default:0 }}</h3>
+                        </div>
+                        <div class="avatar bg-info bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-file-text text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity & Currently Reading -->
+    <div class="row">
+        <!-- Currently Reading -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Currently Reading</h5>
+                    <a href="{% url 'my_library' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_books %}
+                        <div class="list-group list-group-flush">
+                            {% for book in recent_books %}
+                            <div class="list-group-item border-0 px-0">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0 me-3">
+                                        {% if book.cover_image %}
+                                            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="rounded" style="width: 64px; height: 96px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-light d-flex align-items-center justify-content-center rounded" style="width: 64px; height: 96px;">
+                                                <i class="bi bi-book text-muted" style="font-size: 2rem;"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ book.title }}</h6>
+                                        <p class="text-muted small mb-1">by {{ book.author.name }}</p>
+                                        <div class="progress" style="height: 6px;">
+                                            {% with progress=book.reading_progress.get %}
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: {{ progress.progress_percentage }}%" 
+                                                 aria-valuenow="{{ progress.progress_percentage }}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100">
+                                            </div>
+                                            {% endwith %}
+                                        </div>
+                                        <small class="text-muted">
+                                            {% with progress=book.reading_progress.get %}
+                                            {{ progress.current_page|default:0 }} of {{ book.page_count|default:'?' }} pages
+                                            ({{ progress.progress_percentage|default:0 }}%)
+                                            {% endwith %}
+                                        </small>
+                                    </div>
+                                    <div class="ms-3">
+                                        <a href="{% url 'read_book' book.slug %}" class="btn btn-sm btn-primary">
+                                            Continue Reading
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-book text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-3">You haven't started reading any books yet.</p>
+                            <a href="{% url 'home' %}" class="btn btn-primary">Browse Books</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_activity %}
+                        <div class="timeline">
+                            {% for activity in recent_activity %}
+                                <div class="timeline-item">
+                                    <div class="timeline-badge">
+                                        <i class="bi bi-{{ activity.icon }}"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <p class="mb-1">{{ activity.message|safe }}</p>
+                                        <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-activity text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-3">No recent activity to show.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background-color: #f8f9fa;
+        color: #6c757d;
+        font-weight: 600;
+    }
+    
+    .avatar-initials {
+        font-size: 1rem;
+        line-height: 1;
+    }
+    
+    .avatar-xl {
+        width: 80px;
+        height: 80px;
+        font-size: 1.5rem;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.5rem;
+        padding-left: 1.5rem;
+        border-left: 2px solid #e9ecef;
+    }
+    
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+    
+    .timeline-badge {
+        position: absolute;
+        left: -0.5rem;
+        width: 1rem;
+        height: 1rem;
+        border-radius: 50%;
+        background-color: #fff;
+        border: 2px solid #4a6fa5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .timeline-badge i {
+        font-size: 0.5rem;
+        color: #4a6fa5;
+    }
+    
+    .timeline-content {
+        padding-left: 0.5rem;
+    }
+    
+    .progress {
+        border-radius: 10px;
+        background-color: #e9ecef;
+    }
+    
+    .progress-bar {
+        background-color: #4a6fa5;
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}

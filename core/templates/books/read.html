@@ -1,0 +1,348 @@
+{% extends 'profile/base.html' %}
+{% load static %}
+
+{% block title %}{{ book.title }} • BookReader{% endblock %}
+
+{% block extra_css %}
+<style>
+    #viewerContainer {
+        position: absolute;
+        width: 100%;
+        height: calc(100vh - 56px);
+        overflow: auto;
+        background-color: #525659;
+    }
+    #viewer {
+        width: 100%;
+        height: 100%;
+    }
+    #toolbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background-color: #1a1a1a;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+    }
+    .toolbar-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .toolbar-btn {
+        background: none;
+        border: none;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+    .toolbar-btn:hover {
+        background-color: #333;
+    }
+    #pageNumber {
+        width: 50px;
+        text-align: center;
+        margin: 0 5px;
+    }
+    #pageCount {
+        margin: 0 10px;
+    }
+    #download {
+        color: white;
+        text-decoration: none;
+        padding: 5px 10px;
+        border-radius: 3px;
+    }
+    #download:hover {
+        background-color: #333;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="toolbar">
+    <div class="toolbar-group">
+        <button id="prev" class="toolbar-btn" title="Previous Page">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+        <span>Page <span id="pageNumber">1</span> of <span id="pageCount">0</span></span>
+        <button id="next" class="toolbar-btn" title="Next Page">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+    <div class="toolbar-group">
+        <button id="zoomOut" class="toolbar-btn" title="Zoom Out">
+            <i class="bi bi-zoom-out"></i>
+        </button>
+        <span id="scaleSelectContainer">
+            <select id="scaleSelect" class="form-select form-select-sm">
+                <option value="0.5">50%</option>
+                <option value="0.75">75%</option>
+                <option value="1" selected>100%</option>
+                <option value="1.5">150%</option>
+                <option value="2">200%</option>
+                <option value="page-fit">Page Fit</option>
+                <option value="page-width">Page Width</option>
+            </select>
+        </span>
+        <button id="zoomIn" class="toolbar-btn" title="Zoom In">
+            <i class="bi bi-zoom-in"></i>
+        </button>
+    </div>
+    <div class="toolbar-group">
+        <a id="download" href="{{ book.file.url }}" download title="Download PDF">
+            <i class="bi bi-download"></i> Download
+        </a>
+        <button id="close" class="toolbar-btn" title="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+</div>
+
+<div id="viewerContainer">
+    <div id="viewer" class="pdfViewer"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- PDF.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js" integrity="sha512-ml/QKfGx+6+0L2Q4VtJvYbZvR6Xlq8kq3hxZfF1Z4J2+3y+5y+5vGf2gQmgJcd1SJmJtu2vY9ZjTZ/dxQ8zXg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+    // Set the worker source path
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+    let pdfDoc = null,
+        pageNum = 1,
+        pageRendering = false,
+        pageNumPending = null,
+        scale = 1.0,
+        canvas = null,
+        ctx = null;
+
+    // Get DOM elements
+    const container = document.getElementById('viewerContainer');
+    const viewer = document.getElementById('viewer');
+    const pageNumber = document.getElementById('pageNumber');
+    const pageCount = document.getElementById('pageCount');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+    const zoomInBtn = document.getElementById('zoomIn');
+    const zoomOutBtn = document.getElementById('zoomOut');
+    const scaleSelect = document.getElementById('scaleSelect');
+    const closeBtn = document.getElementById('close');
+
+    // Load the PDF
+    const loadingTask = pdfjsLib.getDocument("{{ book.file.url }}");
+    
+    loadingTask.promise.then(function(pdf) {
+        pdfDoc = pdf;
+        pageCount.textContent = pdf.numPages;
+        
+        // Initial/first page rendering
+        renderPage(1);
+        
+        // Update the reading progress in the database
+        updateReadingProgress(1);
+    });
+
+    // Page rendering function
+    function renderPage(num) {
+        pageRendering = true;
+        
+        // Using promise to fetch the page
+        pdfDoc.getPage(num).then(function(page) {
+            const viewport = page.getViewport({ scale: scale });
+            
+            // Prepare canvas
+            canvas = document.createElement('canvas');
+            ctx = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            
+            // Clear the viewer
+            viewer.innerHTML = '';
+            viewer.appendChild(canvas);
+            
+            // Render PDF page into canvas context
+            const renderContext = {
+                canvasContext: ctx,
+                viewport: viewport
+            };
+            
+            const renderTask = page.render(renderContext);
+            
+            // Wait for rendering to finish
+            renderTask.promise.then(function() {
+                pageRendering = false;
+                if (pageNumPending !== null) {
+                    // New page rendering is pending
+                    renderPage(pageNumPending);
+                    pageNumPending = null;
+                }
+                
+                // Update the reading progress in the database
+                updateReadingProgress(num);
+            });
+        });
+        
+        // Update page counter
+        pageNumber.textContent = num;
+    }
+
+    // Update reading progress in the database
+    function updateReadingProgress(pageNum) {
+        fetch(`/update-reading-progress/${book.id}/${pageNum}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+        })
+        .catch(error => console.error('Error updating reading progress:', error));
+    }
+
+    // Go to previous page
+    function onPrevPage() {
+        if (pageNum <= 1) {
+            return;
+        }
+        pageNum--;
+        queueRenderPage(pageNum);
+    }
+    
+    // Go to next page
+    function onNextPage() {
+        if (pageNum >= pdfDoc.numPages) {
+            return;
+        }
+        pageNum++;
+        queueRenderPage(pageNum);
+    }
+    
+    // Queue page rendering
+    function queueRenderPage(num) {
+        if (pageRendering) {
+            pageNumPending = num;
+        } else {
+            renderPage(num);
+        }
+    }
+    
+    // Zoom in
+    function zoomIn() {
+        scale += 0.25;
+        renderPage(pageNum);
+    }
+    
+    // Zoom out
+    function zoomOut() {
+        if (scale <= 0.5) return;
+        scale -= 0.25;
+        renderPage(pageNum);
+    }
+    
+    // Handle scale selection
+    function setScale(value) {
+        if (value === 'page-fit') {
+            // Fit page to container height
+            const containerHeight = container.clientHeight - 20; // 20px padding
+            pdfDoc.getPage(pageNum).then(function(page) {
+                const viewport = page.getViewport({ scale: 1.0 });
+                scale = (containerHeight) / viewport.height;
+                renderPage(pageNum);
+            });
+        } else if (value === 'page-width') {
+            // Fit page to container width
+            const containerWidth = container.clientWidth - 20; // 20px padding
+            pdfDoc.getPage(pageNum).then(function(page) {
+                const viewport = page.getViewport({ scale: 1.0 });
+                scale = (containerWidth) / viewport.width;
+                renderPage(pageNum);
+            });
+        } else {
+            // Set scale to the selected value
+            scale = parseFloat(value);
+            renderPage(pageNum);
+        }
+    }
+    
+    // Event listeners
+    prevBtn.addEventListener('click', onPrevPage);
+    nextBtn.addEventListener('click', onNextPage);
+    zoomInBtn.addEventListener('click', zoomIn);
+    zoomOutBtn.addEventListener('click', zoomOut);
+    scaleSelect.addEventListener('change', function() {
+        setScale(this.value);
+    });
+    closeBtn.addEventListener('click', function() {
+        window.location.href = '{% url "book_detail" slug=book.slug %}';
+    });
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        switch(e.key) {
+            case 'ArrowLeft':
+            case 'PageUp':
+                onPrevPage();
+                e.preventDefault();
+                break;
+            case 'ArrowRight':
+            case ' ':
+            case 'PageDown':
+                onNextPage();
+                e.preventDefault();
+                break;
+            case 'Home':
+                pageNum = 1;
+                queueRenderPage(pageNum);
+                e.preventDefault();
+                break;
+            case 'End':
+                pageNum = pdfDoc.numPages;
+                queueRenderPage(pageNum);
+                e.preventDefault();
+                break;
+        }
+    });
+    
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        if (scaleSelect.value === 'page-fit' || scaleSelect.value === 'page-width') {
+            setScale(scaleSelect.value);
+        }
+    });
+    
+    // Handle touch events for mobile
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    viewer.addEventListener('touchstart', function(e) {
+        touchStartX = e.changedTouches[0].screenX;
+    }, false);
+    
+    viewer.addEventListener('touchend', function(e) {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, false);
+    
+    function handleSwipe() {
+        const swipeThreshold = 50; // Minimum distance to trigger swipe
+        
+        if (touchEndX < touchStartX - swipeThreshold) {
+            // Swipe left - go to next page
+            onNextPage();
+        } else if (touchEndX > touchStartX + swipeThreshold) {
+            // Swipe right - go to previous page
+            onPrevPage();
+        }
+    }
+</script>
+{% endblock %}

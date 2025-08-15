@@ -1,0 +1,279 @@
+{% extends 'profile/base.html' %}
+{% load static %}
+
+{% block title %}My Profile • {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" class="row g-3">
+                        {% csrf_token %}
+                        
+                        <!-- Profile Picture -->
+                        <div class="col-12 text-center mb-4">
+                            <div class="position-relative d-inline-block">
+                                {% if user.userprofile.profile_picture %}
+                                    <img src="{{ user.userprofile.profile_picture.url }}" 
+                                         alt="{{ user.get_full_name }}" 
+                                         class="rounded-circle" 
+                                         style="width: 150px; height: 150px; object-fit: cover;">
+                                {% else %}
+                                    <div class="avatar-upload-preview" 
+                                         style="width: 150px; height: 150px; border-radius: 50%; background-color: #f0f2f5; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #6c757d;">
+                                        {{ user.get_initials }}
+                                    </div>
+                                {% endif %}
+                                <div class="mt-3">
+                                    <label for="id_profile_picture" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-camera me-1"></i> Change Photo
+                                    </label>
+                                    <input type="file" 
+                                           id="id_profile_picture" 
+                                           name="profile_picture" 
+                                           accept="image/*" 
+                                           style="display: none;" 
+                                           onchange="previewImage(this)">
+                                    {% if user.userprofile.profile_picture %}
+                                        <a href="#" class="btn btn-sm btn-outline-danger" id="remove-profile-pic">
+                                            <i class="bi bi-trash me-1"></i> Remove
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Basic Information -->
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Basic Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="id_first_name" class="form-label">First Name</label>
+                                        <input type="text" class="form-control" id="id_first_name" 
+                                               name="first_name" value="{{ user.first_name }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="id_last_name" class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" id="id_last_name" 
+                                               name="last_name" value="{{ user.last_name }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="id_email" class="form-label">Email Address</label>
+                                        <input type="email" class="form-control" id="id_email" 
+                                               name="email" value="{{ user.email }}" required>
+                                        <div class="form-text">We'll never share your email with anyone else.</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="id_bio" class="form-label">Bio</label>
+                                        <textarea class="form-control" id="id_bio" name="bio" 
+                                                  rows="3">{{ user.userprofile.bio|default:'' }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contact Information -->
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Contact Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="id_phone_number" class="form-label">Phone Number</label>
+                                        <input type="tel" class="form-control" id="id_phone_number" 
+                                               name="phone_number" value="{{ user.userprofile.phone_number|default:'' }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="id_date_of_birth" class="form-label">Date of Birth</label>
+                                        <input type="date" class="form-control" id="id_date_of_birth" 
+                                               name="date_of_birth" value="{{ user.userprofile.date_of_birth|date:'Y-m-d' }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="id_address" class="form-label">Address</label>
+                                        <textarea class="form-control" id="id_address" name="address" 
+                                                  rows="2">{{ user.userprofile.address|default:'' }}</textarea>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="id_city" class="form-label">City</label>
+                                                <input type="text" class="form-control" id="id_city" 
+                                                       name="city" value="{{ user.userprofile.city|default:'' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="id_country" class="form-label">Country</label>
+                                                <input type="text" class="form-control" id="id_country" 
+                                                       name="country" value="{{ user.userprofile.country|default:'' }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Social Media -->
+                        <div class="col-12">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Social Media</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text bg-light">
+                                                    <i class="bi bi-globe"></i>
+                                                </span>
+                                                <input type="url" class="form-control" id="id_website" 
+                                                       name="website" placeholder="Website" 
+                                                       value="{{ user.userprofile.website|default:'' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text bg-light">
+                                                    <i class="bi bi-facebook text-primary"></i>
+                                                </span>
+                                                <input type="url" class="form-control" id="id_facebook_profile" 
+                                                       name="facebook_profile" placeholder="Facebook Profile" 
+                                                       value="{{ user.userprofile.facebook_profile|default:'' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text bg-light">
+                                                    <i class="bi bi-twitter text-info"></i>
+                                                </span>
+                                                <input type="url" class="form-control" id="id_twitter_profile" 
+                                                       name="twitter_profile" placeholder="Twitter Profile" 
+                                                       value="{{ user.userprofile.twitter_profile|default:'' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text bg-light">
+                                                    <i class="bi bi-instagram text-danger"></i>
+                                                </span>
+                                                <input type="url" class="form-control" id="id_instagram_profile" 
+                                                       name="instagram_profile" placeholder="Instagram Profile" 
+                                                       value="{{ user.userprofile.instagram_profile|default:'' }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Notification Preferences -->
+                        <div class="col-12">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Notification Preferences</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="id_email_notifications" 
+                                               name="email_notifications" {% if user.userprofile.email_notifications %}checked{% endif %}>
+                                        <label class="form-check-label" for="id_email_notifications">
+                                            Email Notifications
+                                        </label>
+                                        <div class="form-text">Receive email notifications about your account and updates.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="col-12 text-end">
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary me-2">
+                                <i class="bi bi-x-lg me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Preview image before upload
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            const preview = document.querySelector('.avatar-upload-preview');
+            
+            reader.onload = function(e) {
+                // Create image element if it doesn't exist
+                let img = preview.querySelector('img');
+                if (!img) {
+                    img = document.createElement('img');
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '50%';
+                    preview.innerHTML = '';
+                    preview.appendChild(img);
+                }
+                img.src = e.target.result;
+            };
+            
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    
+    // Handle profile picture removal
+    document.addEventListener('DOMContentLoaded', function() {
+        const removeBtn = document.getElementById('remove-profile-pic');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('Are you sure you want to remove your profile picture?')) {
+                    // Add a hidden field to indicate removal
+                    let input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'remove_profile_pic';
+                    input.value = 'true';
+                    this.closest('form').appendChild(input);
+                    
+                    // Reset the preview
+                    const preview = document.querySelector('.avatar-upload-preview');
+                    preview.innerHTML = '{{ user.get_initials }}';
+                    preview.style.display = 'flex';
+                    preview.style.alignItems = 'center';
+                    preview.style.justifyContent = 'center';
+                    preview.style.fontSize = '3rem';
+                    preview.style.color = '#6c757d';
+                    
+                    // Disable the remove button
+                    this.disabled = true;
+                }
+            });
+        }
+        
+        // Initialize date picker for date of birth
+        const dateOfBirth = document.getElementById('id_date_of_birth');
+        if (dateOfBirth) {
+            // Set max date to today
+            const today = new Date().toISOString().split('T')[0];
+            dateOfBirth.max = today;
+        }
+    });
+</script>
+{% endblock %}

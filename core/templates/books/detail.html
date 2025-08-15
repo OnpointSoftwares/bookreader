@@ -1,0 +1,149 @@
+{% extends 'profile/base.html' %}
+{% load static %}
+
+{% block title %}{{ book.title }} • BookReader{% endblock %}
+
+{% block extra_css %}
+<style>
+    .book-cover {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .book-actions {
+        margin-top: 20px;
+    }
+    .book-meta {
+        margin-top: 20px;
+        color: #666;
+    }
+    .book-description {
+        margin-top: 30px;
+        line-height: 1.6;
+    }
+    .progress {
+        height: 10px;
+        margin: 10px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-4">
+            {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="img-fluid book-cover">
+            {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 400px; width: 100%;">
+                    <i class="bi bi-book" style="font-size: 5rem; color: #6c757d;"></i>
+                </div>
+            {% endif %}
+            
+            <div class="book-actions">
+                {% if reading_progress %}
+                    <a href="{% url 'read_book' slug=book.slug %}" class="btn btn-primary btn-lg w-100 mb-2">
+                        {% if reading_progress.is_completed %}
+                            Read Again
+                        {% else %}
+                            Continue Reading
+                        {% endif %}
+                    </a>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: {{ reading_progress.percentage_complete }}%" 
+                             aria-valuenow="{{ reading_progress.percentage_complete }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ reading_progress.percentage_complete|floatformat:0 }}% complete</small>
+                {% else %}
+                    <a href="{% url 'read_book' slug=book.slug %}" class="btn btn-primary btn-lg w-100 mb-2">
+                        Start Reading
+                    </a>
+                {% endif %}
+                
+                <div class="btn-group w-100 mt-2" role="group">
+                    <button type="button" class="btn btn-outline-secondary" id="toggleBookmark" data-book-id="{{ book.id }}">
+                        <i class="bi {% if is_bookmarked %}bi-bookmark-check-fill{% else %}bi-bookmark{% endif %}" id="bookmarkIcon"></i>
+                        <span id="bookmarkText">{% if is_bookmarked %}Bookmarked{% else %}Bookmark{% endif %}</span>
+                    </button>
+                    <a href="{{ book.file.url }}" class="btn btn-outline-secondary" download>
+                        <i class="bi bi-download"></i> Download
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <h1>{{ book.title }}</h1>
+            <p class="text-muted">by {{ book.author }}</p>
+            
+            <div class="d-flex gap-3 mb-3">
+                <div class="text-center">
+                    <div class="h4 mb-0">{{ book.pages }}</div>
+                    <small class="text-muted">Pages</small>
+                </div>
+                <div class="text-center">
+                    <div class="h4 mb-0">{{ book.published_date|date:"Y" }}</div>
+                    <small class="text-muted">Published</small>
+                </div>
+                <div class="text-center">
+                    <div class="h4 mb-0">{{ book.language }}</div>
+                    <small class="text-muted">Language</small>
+                </div>
+            </div>
+            
+            <div class="book-meta">
+                <div><strong>ISBN:</strong> {{ book.isbn|default:"N/A" }}</div>
+                <div><strong>Publisher:</strong> {{ book.publisher|default:"N/A" }}</div>
+                <div><strong>Categories:</strong> 
+                    {% for category in book.categories.all %}
+                        <span class="badge bg-secondary">{{ category.name }}</span>
+                    {% empty %}
+                        No categories
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="book-description">
+                <h4>Description</h4>
+                <p>{{ book.description|linebreaksbr }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toggle bookmark
+    document.getElementById('toggleBookmark').addEventListener('click', function() {
+        const bookId = this.getAttribute('data-book-id');
+        const icon = document.getElementById('bookmarkIcon');
+        const text = document.getElementById('bookmarkText');
+        
+        fetch(`/toggle-bookmark/${bookId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'added') {
+                icon.className = 'bi bi-bookmark-check-fill';
+                text.textContent = 'Bookmarked';
+            } else {
+                icon.className = 'bi bi-bookmark';
+                text.textContent = 'Bookmark';
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+</script>
+{% endblock %}

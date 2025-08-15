@@ -1,0 +1,406 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-content">
+        <!-- Book Reading Image -->
+        <div class="login-image">
+            <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                 alt="Person reading a book" 
+                 class="book-reading-img">
+            <div class="image-overlay">
+                <h2>Welcome Back</h2>
+                <p>Continue your reading journey with us</p>
+            </div>
+        </div>
+        
+        <!-- Login Form -->
+        <div class="login-form">
+            <div class="form-wrapper">
+                <div class="logo">
+                    <span>📚</span>
+                    <h2>BookReader</h2>
+                </div>
+                <h3>Sign In</h3>
+                <p class="welcome-text">Sign in to access your personal library and continue reading</p>
+                
+                <form method="post" class="auth-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="password-input">
+                            <input type="password" id="password" name="password" class="form-control" required>
+                            <button type="button" class="toggle-password">👁️</button>
+                        </div>
+                    </div>
+                    <div class="form-options">
+                        <label class="remember-me">
+                            <input type="checkbox" name="remember"> Remember me
+                        </label>
+                        <a href="#" class="forgot-password">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                </form>
+                
+                <div class="divider">
+                    <span>or continue with</span>
+                </div>
+                
+                <div class="social-login">
+                    <button class="social-btn google">
+                        <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path fill="#4285F4" d="M23.745 12.27c0-.79-.07-1.54-.19-2.27h-11.3v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/>
+                            <path fill="#34A853" d="M12.255 24c3.24 0 5.96-1.08 7.95-2.91l-3.86-3.86c-1.08.72-2.45 1.16-4.09 1.16-3.14 0-5.81-2.12-6.76-4.97H1.485v3.98C3.475 21.3 7.585 24 12.255 24z"/>
+                            <path fill="#FBBC05" d="M5.485 14.42c-.25-.72-.38-1.49-.38-2.28s.13-1.56.38-2.28V5.88H1.485C.675 7.68.255 9.74.255 12s.42 4.32 1.23 6.12l3.74-2.9z"/>
+                            <path fill="#EA4335" d="M12.255 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C18.205 1.19 15.495 0 12.255 0c-4.67 0-8.78 2.7-10.77 6.62l3.75 2.9c.95-2.85 3.62-4.97 6.76-4.97z"/>
+                        </svg>
+                        Google
+                    </button>
+                    <button class="social-btn facebook">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                        Facebook
+                    </button>
+                </div>
+                
+                <p class="signup-link">
+                    Don't have an account? <a href="{% url 'signup' %}">Sign up</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-color: #1e2a5a;
+        --accent-color: #d4af37;
+        --text-color: #2c3e50;
+        --text-muted: #6c757d;
+        --light-gray: #f8f9fa;
+        --border-color: #e9ecef;
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: #f5f7fa;
+        color: var(--text-color);
+        line-height: 1.6;
+    }
+    
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+    
+    .login-content {
+        display: flex;
+        max-width: 1200px;
+        width: 100%;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .login-image {
+        flex: 1;
+        position: relative;
+        background: var(--primary-color);
+    }
+    
+    .book-reading-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.9;
+    }
+    
+    .image-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 3rem 2.5rem;
+        color: white;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    }
+    
+    .image-overlay h2 {
+        font-size: 2.2rem;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .image-overlay p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    .login-form {
+        flex: 1;
+        padding: 4rem 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .form-wrapper {
+        max-width: 400px;
+        width: 100%;
+        margin: 0 auto;
+    }
+    
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+    }
+    
+    .logo span {
+        font-size: 2rem;
+    }
+    
+    .logo h2 {
+        font-size: 1.75rem;
+        color: var(--primary-color);
+        font-weight: 700;
+    }
+    
+    .welcome-text {
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-color);
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+        outline: none;
+    }
+    
+    .password-input {
+        position: relative;
+    }
+    
+    .toggle-password {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-muted);
+        font-size: 1rem;
+        opacity: 0.7;
+    }
+    
+    .form-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .remember-me {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-muted);
+    }
+    
+    .forgot-password {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .forgot-password:hover {
+        text-decoration: underline;
+    }
+    
+    .btn {
+        display: inline-block;
+        padding: 0.875rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background-color: #17234b;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(30, 42, 90, 0.2);
+    }
+    
+    .btn-block {
+        display: block;
+        width: 100%;
+    }
+    
+    .divider {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        margin: 2rem 0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+    
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .divider span {
+        padding: 0 1rem;
+    }
+    
+    .social-login {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .social-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: white;
+        color: var(--text-color);
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .social-btn:hover {
+        background: var(--light-gray);
+        transform: translateY(-2px);
+    }
+    
+    .social-btn img {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .signup-link {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+    
+    .signup-link a {
+        color: var(--primary-color);
+        font-weight: 500;
+        text-decoration: none;
+    }
+    
+    .signup-link a:hover {
+        text-decoration: underline;
+    }
+    
+    @media (max-width: 992px) {
+        .login-image {
+            display: none;
+        }
+        
+        .login-form {
+            padding: 3rem 2rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .login-container {
+            padding: 1rem;
+        }
+        
+        .login-form {
+            padding: 2rem 1.5rem;
+        }
+        
+        .social-login {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<script>
+    // Toggle password visibility
+    document.querySelector('.toggle-password').addEventListener('click', function() {
+        const passwordInput = document.getElementById('password');
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+    });
+    
+    // Add animation to form elements
+    document.addEventListener('DOMContentLoaded', function() {
+        const formElements = document.querySelectorAll('.form-group, .form-options, .btn, .divider, .social-login, .signup-link');
+        formElements.forEach((el, index) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = `opacity 0.5s ease ${index * 0.1}s, transform 0.5s ease ${index * 0.1}s`;
+            
+            setTimeout(() => {
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    });
+</script>
+{% endblock %}

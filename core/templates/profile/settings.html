@@ -1,0 +1,493 @@
+{% extends 'profile/base.html' %}
+{% load static %}
+
+{% block title %}Settings • BookReader{% endblock %}
+
+
+
+{% block extra_css %}
+<style>
+    .settings-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .settings-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .settings-header h1 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+    
+    .settings-header p {
+        color: #666;
+        margin: 0.5rem 0 0;
+    }
+    
+    .settings-section {
+        margin-bottom: 2.5rem;
+    }
+    
+    .settings-section h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #444;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #444;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+    
+    .form-control:focus {
+        border-color: #4a90e2;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    }
+    
+    .btn {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background: #4a90e2;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .btn:hover {
+        background: #3a7bc8;
+    }
+    
+    .btn-outline {
+        background: transparent;
+        border: 1px solid #ddd;
+        color: #666;
+    }
+    
+    .btn-outline:hover {
+        background: #f8f9fa;
+        color: #444;
+    }
+    
+    .profile-picture {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 1rem;
+        border: 3px solid #fff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .danger-zone {
+        padding: 1.5rem;
+        border: 1px solid #ff6b6b;
+        border-radius: 6px;
+        background-color: #fff5f5;
+    }
+    
+    .danger-zone h3 {
+        color: #e03131;
+        margin-top: 0;
+    }
+    
+    .btn-danger {
+        background-color: #e03131;
+    }
+    
+    .btn-danger:hover {
+        background-color: #c92a2a;
+    }
+    
+    .theme-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .theme-option {
+        cursor: pointer;
+        padding: 1rem;
+        border: 2px solid #eee;
+        border-radius: 6px;
+        text-align: center;
+        transition: all 0.2s;
+    }
+    
+    .theme-option:hover {
+        border-color: #4a90e2;
+    }
+    
+    .theme-option.active {
+        border-color: #4a90e2;
+        background-color: #f0f7ff;
+    }
+    
+    .theme-preview {
+        width: 100%;
+        height: 80px;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <div class="settings-header">
+        <h1>Account Settings</h1>
+        <p>Manage your account preferences and settings</p>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="settings-section">
+            <h2>Profile Information</h2>
+            
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert {% if message.tags %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {{ user_form.non_field_errors }}
+            {{ profile_form.non_field_errors }}
+            
+            <div class="form-group text-center">
+                <div class="position-relative d-inline-block">
+                    <img src="{{ user.userprofile.avatar_url }}" alt="Profile Picture" class="profile-picture rounded-circle" id="avatar-preview" style="width: 150px; height: 150px; object-fit: cover;">
+                    <label for="id_avatar" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2" style="cursor: pointer;">
+                        <i class="bi bi-camera"></i>
+                    </label>
+                    {{ profile_form.avatar }}
+                    {% if profile_form.avatar.errors %}
+                        <div class="text-danger">{{ profile_form.avatar.errors }}</div>
+                    {% endif %}
+                    <div class="form-text">Click the camera icon to change your avatar</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ user_form.first_name.id_for_label }}">First Name</label>
+                {{ user_form.first_name }}
+                {% if user_form.first_name.errors %}
+                    <div class="text-danger">{{ user_form.first_name.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ user_form.last_name.id_for_label }}">Last Name</label>
+                {{ user_form.last_name }}
+                {% if user_form.last_name.errors %}
+                    <div class="text-danger">{{ user_form.last_name.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ user_form.email.id_for_label }}">Email Address</label>
+                {{ user_form.email }}
+                {% if user_form.email.errors %}
+                    <div class="text-danger">{{ user_form.email.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ profile_form.bio.id_for_label }}">Bio</label>
+                {{ profile_form.bio }}
+                {% if profile_form.bio.errors %}
+                    <div class="text-danger">{{ profile_form.bio.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <button type="submit" class="btn" name="update_profile">Save Changes</button>
+        </div>
+    </form>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="settings-section">
+            <h2>Change Password</h2>
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="{{ form.old_password.id_for_label }}">Current Password</label>
+                {{ form.old_password }}
+                {% if form.old_password.errors %}
+                    <div class="text-danger">{{ form.old_password.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.new_password1.id_for_label }}">New Password</label>
+                {{ form.new_password1 }}
+                <small class="text-muted">
+                    {{ form.new_password1.help_text }}
+                </small>
+                {% if form.new_password1.errors %}
+                    <div class="text-danger">{{ form.new_password1.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.new_password2.id_for_label }}">Confirm New Password</label>
+                {{ form.new_password2 }}
+                {% if form.new_password2.errors %}
+                    <div class="text-danger">{{ form.new_password2.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <button type="submit" class="btn" name="change_password">Update Password</button>
+        </div>
+    </form>
+    
+    <div class="settings-section">
+        <h2>Reading Preferences</h2>
+        
+        <div class="form-group">
+            <label>Theme</label>
+            <div class="theme-options">
+                <div class="theme-option active" data-theme="light">
+                    <div class="theme-preview" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef);"></div>
+                    <span>Light</span>
+                </div>
+                <div class="theme-option" data-theme="dark">
+                    <div class="theme-preview" style="background: linear-gradient(135deg, #343a40, #212529);"></div>
+                    <span>Dark</span>
+                </div>
+                <div class="theme-option" data-theme="sepia">
+                    <div class="theme-preview" style="background: linear-gradient(135deg, #f4ecd8, #e4d5b7);"></div>
+                    <span>Sepia</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_font_size">Font Size</label>
+            <select name="font_size" id="id_font_size" class="form-control">
+                <option value="small">Small</option>
+                <option value="medium" selected>Medium</option>
+                <option value="large">Large</option>
+                <option value="x-large">Extra Large</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_page_turn">Page Turn Animation</label>
+            <select name="page_turn" id="id_page_turn" class="form-control">
+                <option value="slide">Slide</option>
+                <option value="fade" selected>Fade</option>
+                <option value="none">None</option>
+            </select>
+        </div>
+        
+        <button type="button" class="btn" id="savePreferences">Save Preferences</button>
+    </div>
+    
+    <div class="settings-section danger-zone">
+        <h3>Danger Zone</h3>
+        <p>These actions are irreversible. Please proceed with caution.</p>
+        
+        <div class="mt-3">
+            <button type="button" class="btn btn-outline" data-bs-toggle="modal" data-bs-target="#exportDataModal">
+                <i class="bi bi-download me-2"></i>Export My Data
+            </button>
+            
+            <button type="button" class="btn btn-outline ms-2" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                <i class="bi bi-trash me-2"></i>Delete Account
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Export Data Modal -->
+<div class="modal fade" id="exportDataModal" tabindex="-1" aria-labelledby="exportDataModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportDataModalLabel">Export Your Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>This will generate a file containing all your personal data, including:</p>
+                <ul>
+                    <li>Profile information</li>
+                    <li>Reading history</li>
+                    <li>Bookmarks and highlights</li>
+                    <li>Notes and annotations</li>
+                </ul>
+                <p>The export may take a few minutes to prepare. We'll notify you via email when it's ready.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmExport">Request Export</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger" id="deleteAccountModalLabel">Delete Your Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger"><strong>Warning: This action cannot be undone.</strong></p>
+                <p>All your data, including your profile, reading history, bookmarks, and notes will be permanently deleted.</p>
+                <p>To confirm, please type <strong>DELETE</strong> in the box below:</p>
+                <input type="text" class="form-control mt-2" id="confirmDeleteInput" placeholder="Type DELETE to confirm">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete" disabled>Permanently Delete My Account</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Theme selection
+    document.querySelectorAll('.theme-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+            // Here you would save the theme preference via AJAX
+            const theme = this.getAttribute('data-theme');
+            console.log('Theme selected:', theme);
+            // Example: document.documentElement.setAttribute('data-theme', theme);
+        });
+    });
+    
+    // Save preferences
+    document.getElementById('savePreferences').addEventListener('click', function() {
+        // Here you would save the preferences via AJAX
+        const theme = document.querySelector('.theme-option.active').getAttribute('data-theme');
+        const fontSize = document.getElementById('id_font_size').value;
+        const pageTurn = document.getElementById('id_page_turn').value;
+        
+        console.log('Saving preferences:', { theme, fontSize, pageTurn });
+        // Show success message
+        alert('Preferences saved successfully!');
+    });
+    
+    // Avatar preview
+    document.getElementById('id_avatar').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatar-preview').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Delete account confirmation
+    const confirmDeleteInput = document.getElementById('confirmDeleteInput');
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    
+    confirmDeleteInput.addEventListener('input', function() {
+        confirmDeleteBtn.disabled = this.value !== 'DELETE';
+    });
+    
+    confirmDeleteBtn.addEventListener('click', function() {
+        if (confirmDeleteInput.value === 'DELETE') {
+            console.log('Account deletion requested');
+           
+            alert('Account deletion would be processed here.');
+        }
+    });
+    
+    // Export data
+    document.getElementById('confirmExport').addEventListener('click', function() {
+        // Here you would trigger the data export
+        console.log('Data export requested');
+        // Show success message
+        alert('Your data export has been requested. You will receive an email when it\'s ready.');
+        // Close the modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('exportDataModal'));
+        modal.hide();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Avatar preview
+        const avatarInput = document.getElementById('id_avatar');
+        const avatarPreview = document.getElementById('avatar-preview');
+        
+        if (avatarInput && avatarPreview) {
+            avatarInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        avatarPreview.src = e.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        // Form submission handling
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                // Add loading state to buttons
+                const submitButtons = this.querySelectorAll('button[type="submit"]');
+                submitButtons.forEach(button => {
+                    button.disabled = true;
+                    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
