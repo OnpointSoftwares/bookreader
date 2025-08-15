@@ -117,8 +117,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # For production, where collectstatic will collect static files
+# List of directories where Django will look for additional static files
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # Your app's static files directory
+    BASE_DIR / 'core/static',  # App-specific static files
+    # Add other apps' static directories here if needed
 ]
 
 # Media files (Uploaded files)
