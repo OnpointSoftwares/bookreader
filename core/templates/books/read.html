@@ -138,10 +138,19 @@
     const scaleSelect = document.getElementById('scaleSelect');
     const closeBtn = document.getElementById('close');
 
-    // Load the PDF
-    const loadingTask = pdfjsLib.getDocument("{{ book.file.url }}");
+    // Log the PDF URL for debugging
+    const pdfUrl = "{{ book.file.url }}";
+    console.log('Loading PDF from:', pdfUrl);
+    
+    // Load the PDF with CORS and credentials
+    const loadingTask = pdfjsLib.getDocument({
+        url: pdfUrl,
+        withCredentials: true,
+        httpHeaders: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
     
     loadingTask.promise.then(function(pdf) {
+        console.log('PDF loaded successfully');
         pdfDoc = pdf;
         pageCount.textContent = pdf.numPages;
         
@@ -150,14 +159,35 @@
         
         // Update the reading progress in the database
         updateReadingProgress(1);
+    }).catch(function(error) {
+        console.error('Error loading PDF:', error);
+        viewer.innerHTML = `
+            <div style="color: white; text-align: center; padding: 50px;">
+                <h3>Error loading PDF</h3>
+                <p>${error.message || 'Unable to load the PDF file. Please try again later.'}</p>
+                <p>If the problem persists, please make sure the PDF file exists and is accessible.</p>
+                <a href="{{ book.file.url }}" class="btn btn-primary mt-3" download>
+                    <i class="bi bi-download"></i> Download PDF
+                </a>
+            </div>
+        `;
     });
 
     // Page rendering function
     function renderPage(num) {
+        if (!pdfDoc) {
+            console.error('PDF document not loaded');
+            return;
+        }
+        
         pageRendering = true;
+        
+        // Show loading message
+        viewer.innerHTML = '<div style="color: white; text-align: center; padding: 50px;">Loading page ' + num + '...</div>';
         
         // Using promise to fetch the page
         pdfDoc.getPage(num).then(function(page) {
+            console.log('Rendering page', num);
             const viewport = page.getViewport({ scale: scale });
             
             // Prepare canvas
@@ -180,6 +210,7 @@
             
             // Wait for rendering to finish
             renderTask.promise.then(function() {
+                console.log('Page', num, 'rendered successfully');
                 pageRendering = false;
                 if (pageNumPending !== null) {
                     // New page rendering is pending
