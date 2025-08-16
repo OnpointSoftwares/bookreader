@@ -237,7 +237,7 @@ def read_book(request, slug):
     reading_progress, created = ReadingProgress.objects.get_or_create(
         user=request.user,
         book=book,
-        defaults={'last_page': 1, 'is_completed': False}
+        defaults={'current_page': 1, 'is_completed': False}
     )
     
     # If this is a POST request, update the reading progress
@@ -245,7 +245,7 @@ def read_book(request, slug):
         page = int(request.POST.get('page', 1))
         is_completed = request.POST.get('is_completed', 'false').lower() == 'true'
         
-        reading_progress.last_page = page
+        reading_progress.current_page = page
         reading_progress.is_completed = is_completed
         reading_progress.last_read = timezone.now()
         reading_progress.save()
@@ -255,7 +255,7 @@ def read_book(request, slug):
     # For GET request, render the read template
     context = {
         'book': book,
-        'current_page': reading_progress.last_page,
+        'current_page': reading_progress.current_page,
         'is_bookmarked': Bookmark.objects.filter(user=request.user, book=book).exists(),
     }
     
