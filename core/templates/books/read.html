@@ -138,6 +138,12 @@
     const scaleSelect = document.getElementById('scaleSelect');
     const closeBtn = document.getElementById('close');
 
+    // Clean up any existing PDF viewer instance
+    if (window.pdfViewerInstance) {
+        window.pdfViewerInstance.destroy();
+        delete window.pdfViewerInstance;
+    }
+    
     // Log the PDF URL for debugging
     const pdfUrl = "{{ book.file.url }}";
     console.log('Loading PDF from:', pdfUrl);
@@ -148,6 +154,9 @@
         withCredentials: true,
         httpHeaders: { 'X-Requested-With': 'XMLHttpRequest' }
     });
+    
+    // Store the PDF instance for cleanup
+    window.pdfViewerInstance = loadingTask;
     
     loadingTask.promise.then(function(pdf) {
         console.log('PDF loaded successfully');
@@ -344,25 +353,46 @@
         }
     });
     
-    // Handle window resize
-    window.addEventListener('resize', function() {
-        if (scaleSelect.value === 'page-fit' || scaleSelect.value === 'page-width') {
-            setScale(scaleSelect.value);
+    // Handle window resize with debounce
+    let resizeTimer;
+    const handleResize = function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            if (scaleSelect.value === 'page-fit' || scaleSelect.value === 'page-width') {
+                setScale(scaleSelect.value);
+            }
+        }, 250);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    // Cleanup function
+    window.addEventListener('beforeunload', function() {
+        if (window.pdfViewerInstance) {
+            window.pdfViewerInstance.destroy();
+            delete window.pdfViewerInstance;
         }
+        window.removeEventListener('resize', handleResize);
     });
     
     // Handle touch events for mobile
     let touchStartX = 0;
     let touchEndX = 0;
     
-    viewer.addEventListener('touchstart', function(e) {
-        touchStartX = e.changedTouches[0].screenX;
-    }, false);
+    // Clean up any existing event listeners to prevent duplicates
+    const viewerElement = document.getElementById('viewer');
+    const newViewer = viewerElement.cloneNode(true);
+    viewerElement.parentNode.replaceChild(newViewer, viewerElement);
     
-    viewer.addEventListener('touchend', function(e) {
+    // Add fresh event listeners
+    newViewer.addEventListener('touchstart', function(e) {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    newViewer.addEventListener('touchend', function(e) {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
-    }, false);
+    }, { passive: true });
     
     function handleSwipe() {
         const swipeThreshold = 50; // Minimum distance to trigger swipe
